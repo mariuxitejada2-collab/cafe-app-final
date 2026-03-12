@@ -2,59 +2,98 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 
-# Configuración de la página y Estética (Logo)
-st.set_page_config(page_title="CAFE - Caja de Ahorro", page_icon="💰")
-st.title("🏦 Sistema de Gestión CAFE")
-st.subheader("Caja de Ahorro Fe y Esperanza")
+# --- CONFIGURACIÓN DE INTERFAZ (PALETA DE COLORES) ---
+st.set_page_config(page_title="Sistema C.A.F.E.", layout="wide")
 
-# Simulación de Base de Datos (En una app real esto iría en SQL)
-if 'socios' not in st.session_state:
-    st.session_state.socios = pd.DataFrame(
-        columns=["ID", "Nombre", "Ahorro_Total", "Tipo", "Deuda_Actual"]
-    )
+st.markdown("""
+    <style>
+    .main { background-color: #F5F5F5; }
+    .stMetric { background-color: #FFFFFF; padding: 15px; border-radius: 10px; border: 1px solid #E0E0E0; }
+    div[data-testid="metric-container"]:nth-child(1) { border-left: 5px solid #4CAF50; } /* Verde - Capital */
+    div[data-testid="metric-container"]:nth-child(2) { border-left: 5px solid #FF9800; } /* Naranja - Caja Chica */
+    div[data-testid="metric-container"]:nth-child(3) { border-left: 5px solid #2196F3; } /* Azul - Préstamos */
+    div[data-testid="metric-container"]:nth-child(4) { border-left: 5px solid #9C27B0; } /* Morado - Voluntarios */
+    </style>
+    """, unsafe_allow_html=True)
 
-# --- MENÚ LATERAL ---
-menu = st.sidebar.selectbox("Panel de Control", ["Inicio", "Aportes Domingos", "Préstamos", "Estado de Cuenta"])
+# --- INICIALIZACIÓN DE DATOS (BASE DE DATOS TEMPORAL) ---
+if 'db' not in st.session_state:
+    st.session_state.db = {
+        'capital_prestable': 5000.0,
+        'caja_chica': 150.0,
+        'prestamos_activos': 1200.0,
+        'voluntarios': 450.0,
+        'socios': pd.DataFrame([
+            {"Nombre": "Socio Fundador 1", "Ahorro": 200.0, "Intereses": 15.0, "Tipo": "Fundador"},
+            {"Nombre": "Socio Externo A", "Ahorro": 50.0, "Intereses": 0.0, "Tipo": "Externo"}
+        ])
+    }
 
-# --- LÓGICA DE APORTES (DOMINGOS 6:00 PM) ---
-if menu == "Aportes Domingos":
-    st.header("📥 Registro de Aporte Semanal")
-    nombre = st.selectbox("Seleccionar Socio", st.session_state.socios["Nombre"])
-    hora_pago = st.time_input("Hora de Pago", datetime.now().time())
+st.title("🏦 SISTEMA C.A.F.E.")
+st.caption("Caja de Ahorro Fe y Esperanza - Gestión Integral")
+
+# --- 1. DASHBOARD PRINCIPAL (MÉTRICAS) ---
+col1, col2, col3, col4 = st.columns(4)
+with col1:
+    st.metric("Capital Prestable (FIC)", f"${st.session_state.db['capital_prestable']}", help="Dinero listo para otorgar préstamos")
+with col2:
+    st.metric("Caja Chica / Gastos", f"${st.session_state.db['caja_chica']}", help="Fondo operativo y multas")
+with col3:
+    st.metric("Préstamos Activos", f"${st.session_state.db['prestamos_activos']}", help="Cartera vigente en la calle")
+with col4:
+    st.metric("Aportes Voluntarios", f"${st.session_state.db['voluntarios']}", help="Ahorros extra que generan intereses")
+
+st.divider()
+
+# --- 2. PANELES DE OPERACIÓN ---
+tab1, tab2, tab3, tab4 = st.tabs(["👥 Socios", "💸 Préstamos", "📅 Aportes Domingos", "📊 Reportes"])
+
+with tab1:
+    st.subheader("Listado de Socios Registrados")
+    st.table(st.session_state.db['socios'])
     
-    if st.button("Registrar Aporte $2.00"):
-        multa = 0.50 if hora_pago.hour >= 18 else 0.0
-        # Aquí se sumaría el ahorro y se restaría la multa en la base de datos
-        st.success(f"Aporte registrado para {nombre}. Multa aplicada: ${multa}")
-        if multa > 0:
-            st.warning("⚠️ Pago fuera de horario (Después de las 6:00 PM)")
+    with st.expander("➕ Registrar Nuevo Socio"):
+        c1, c2 = st.columns(2)
+        nuevo_nom = c1.text_input("Nombre Completo")
+        tipo_s = c2.selectbox("Tipo", ["Fundador", "Externo"])
+        if st.button("Guardar Socio"):
+            # Lógica de inscripción Art. 4 ($10 USD)
+            st.session_state.db['caja_chica'] += 3.0
+            st.session_state.db['capital_prestable'] += 4.0
+            st.success(f"Socio {nuevo_nom} registrado. $3 a Caja Chica, $4 a FIC.")
 
-# --- LÓGICA DE PRÉSTAMOS (TASAS 5% Y 8%) ---
-elif menu == "Préstamos":
-    st.header("💸 Solicitud de Crédito")
-    tipo_socio = st.radio("Tipo de Solicitante", ["Socio Fundador (5%)", "Externo (8%)"])
-    monto = st.number_input("Monto a solicitar", min_value=50.0, step=50.0)
+with tab2:
+    st.subheader("Gestión de Créditos")
+    col_p1, col_p2 = st.columns(2)
+    monto_p = col_p1.number_input("Monto Solicitado", min_value=50, step=50)
+    tasa_p = col_p2.selectbox("Tasa Aplicable", ["Socio (5%)", "Externo (8%)"])
     
-    tasa = 0.05 if "Fundador" in tipo_socio else 0.08
-    interes_mensual = monto * tasa
-    total_a_pagar = monto + interes_mensual
-    
-    st.info(f"Interés mensual: ${interes_mensual:.2f} | Total a devolver: ${total_a_pagar:.2f}")
-    
-    if st.button("Aprobar Desembolso"):
-        st.balloons()
-        st.success("Préstamo registrado en el sistema.")
+    # Validación de Liquidez (Art. 5)
+    if monto_p > st.session_state.db['capital_prestable']:
+        st.error("⚠️ Fondos Insuficientes en el FIC para este monto.")
+    else:
+        if st.button("Aprobar Préstamo"):
+            st.session_state.db['capital_prestable'] -= monto_p
+            st.session_state.db['prestamos_activos'] += monto_p
+            st.success(f"Desembolso aprobado por ${monto_p}")
 
-# --- REGISTRO DE SOCIOS INICIAL ---
-elif menu == "Inicio":
-    st.write("Bienvenido al sistema digital de **CAFE**. Utilice el menú lateral para gestionar los fondos.")
-    with st.expander("Registrar Nuevo Socio"):
-        nuevo_nombre = st.text_input("Nombre Completo")
-        tipo = st.selectbox("Categoría", ["Fundador", "Externo"])
-        if st.button("Añadir a la Caja"):
-            nueva_fila = {"ID": len(st.session_state.socios)+1, "Nombre": nuevo_nombre, "Ahorro_Total": 0, "Tipo": tipo, "Deuda_Actual": 0}
-            st.session_state.socios = st.session_state.socios.append(nueva_fila, ignore_index=True)
-            st.success("Socio registrado con éxito.")
+with tab3:
+    st.subheader("Control Dominical (Puntualidad)")
+    hora_actual = datetime.now().strftime("%H:%M")
+    st.write(f"Hora de registro: **{hora_actual}**")
     
-    st.dataframe(st.session_state.socios)
+    socio_pago = st.selectbox("Socio que entrega aporte", st.session_state.db['socios']['Nombre'])
+    if st.button("Registrar $2.00 Semanales"):
+        # Lógica de Multa Art. 2 ($0.50 si es después de las 18:00)
+        ahora = datetime.now()
+        if ahora.hour >= 18:
+            st.session_state.db['caja_chica'] += 0.50
+            st.warning("Multa de $0.50 aplicada por retraso.")
+        st.session_state.db['capital_prestable'] += 2.0
+        st.success("Aporte registrado correctamente.")
 
+with tab4:
+    st.subheader("Resumen de Utilidades (Modelo Igualitario)")
+    utilidad_total = st.session_state.db['caja_chica'] + (st.session_state.db['prestamos_activos'] * 0.05) # Simulación
+    st.info(f"Utilidad Líquida Estimada: ${utilidad_total:.2f}")
+    st.write(f"Monto por cada uno de los 10 fundadores: **${utilidad_total/10:.2f}**")
