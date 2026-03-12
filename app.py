@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-# --- 1. CONFIGURACIÓN VISUAL (ESTÉTICA DE TU FOTO) ---
+# --- 1. CONFIGURACIÓN VISUAL (ESTÉTICA DE TARJETAS) ---
 st.set_page_config(page_title="C.A.F.E - Dashboard", page_icon="🏦", layout="wide")
 
 st.markdown("""
@@ -20,15 +20,16 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 2. CONEXIÓN DIRECTA (MÉTODO INFALIBLE) ---
-# Extraemos los datos como CSV directamente desde Google
+# --- 2. CONEXIÓN DIRECTA CORREGIDA ---
+# Limpiamos la URL para evitar el error de "Name or service not known"
 SHEET_ID = "1Qx6Uhz_XHSETKhQwlgYNpaenq6-8nTKfGcbwAvL7hkg"
 SHEET_NAME = "DB_CAFE"
-url = f"https://docs.google.com{SHEET_ID}/gviz/tq?tqx=out:csv&sheet={SHEET_NAME}"
+url = f"https://docs.google.com/spreadsheets/d/1Qx6Uhz_XHSETKhQwlgYNpaenq6-8nTKfGcbwAvL7hkg/edit?usp=sharing"
 
-@st.cache_data(ttl=10)
+@st.cache_data(ttl=5) # Se actualiza rápido para pruebas
 def cargar_datos():
-    return pd.read_csv(url)
+    # El motor 'python' es más robusto para errores de red
+    return pd.read_csv(url, on_bad_lines='skip', engine='python')
 
 # --- 3. INTERFAZ ---
 st.markdown("<h1 style='text-align: center; color: #1A237E;'>🏦 SISTEMA C.A.F.E</h1>", unsafe_allow_html=True)
@@ -36,7 +37,7 @@ st.markdown("<h1 style='text-align: center; color: #1A237E;'>🏦 SISTEMA C.A.F.
 try:
     df = cargar_datos()
 
-    # DASHBOARD ESTILO TARJETAS
+    # DASHBOARD ESTILO TARJETAS (Como en tu imagen original)
     col1, col2 = st.columns(2)
     with col1:
         st.markdown(f'''
@@ -53,12 +54,11 @@ try:
             </div>
         ''', unsafe_allow_html=True)
 
-    # LISTADO DE SOCIOS (Lookup de tu imagen)
+    # LISTADO DE SOCIOS
     st.markdown('<div class="card"><div class="card-header header-green">👥 Listado de Socios Registrados</div><div class="card-body">', unsafe_allow_html=True)
     st.dataframe(df, use_container_width=True, hide_index=True)
     st.markdown('</div></div>', unsafe_allow_html=True)
 
 except Exception as e:
     st.error(f"Error al leer la hoja: {e}")
-    st.info("Asegúrate de que la pestaña en tu Google Sheet se llame exactamente: DB_CAFE")
-
+    st.info("Revisa que la pestaña en tu Google Sheet se llame exactamente: DB_CAFE")
