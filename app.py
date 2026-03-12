@@ -27,7 +27,9 @@ SHEET_NAME = "DB_CAFE"
 url = f"https://docs.google.com/spreadsheets/d/1Qx6Uhz_XHSETKhQwlgYNpaenq6-8nTKfGcbwAvL7hkg/edit?usp=sharing"
 
 @st.cache_data(ttl=5) # Se actualiza rápido para pruebas
-def cargar_datos():
+# Cambia la línea 30 por esta (mira que agregamos &headers=1 al final):
+url = f"https://docs.google.com{SHEET_ID}/gviz/tq?tqx=out:csv&sheet={SHEET_NAME}&headers=1"
+
     # El motor 'python' es más robusto para errores de red
     return pd.read_csv(url, on_bad_lines='skip', engine='python')
 
@@ -62,3 +64,4 @@ try:
 except Exception as e:
     st.error(f"Error al leer la hoja: {e}")
     st.info("Revisa que la pestaña en tu Google Sheet se llame exactamente: DB_CAFE")
+
