@@ -1,3 +1,9 @@
+import streamlit as st
+import pandas as pd
+from streamlit_gsheets import GSheetsConnection  # <--- ESTA LÍNEA ES LA QUE FALTA
+
+# --- CONFIGURACIÓN VISUAL ---
+st.set_page_config(page_title="C.A.F.E - Dashboard", page_icon="🏦", layout="wide")
 # --- CONEXIÓN A DATOS ---
 # Esta es la URL que apunta directamente a tu hoja DB_CAFE
 url_hoja = "https://docs.google.com" 
@@ -28,3 +34,4 @@ try:
 except Exception as e:
     st.error(f"Error de conexión: {e}")
     st.info("Asegúrate de que el botón COMPARTIR en Google Sheets diga 'Cualquier persona con el enlace'.")
+
