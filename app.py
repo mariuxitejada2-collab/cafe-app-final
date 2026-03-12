@@ -20,16 +20,16 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 2. CONEXIÓN DIRECTA CORREGIDA ---
-# Limpiamos la URL para evitar el error de "Name or service not known"
+# --- 2. CONEXIÓN A GOOGLE SHEETS ---
 SHEET_ID = "1Qx6Uhz_XHSETKhQwlgYNpaenq6-8nTKfGcbwAvL7hkg"
 SHEET_NAME = "DB_CAFE"
-url = f"https://docs.google.com/spreadsheets/d/1Qx6Uhz_XHSETKhQwlgYNpaenq6-8nTKfGcbwAvL7hkg/edit?usp=sharing"
-SHEET_ID = "1Qx6Uhz_XHSETKhQwlgYNpaenq6-8nTKfGcbwAvL7hkg"
-SHEET_NAME = "DB_CAFE"
+# URL Corregida y limpia
 url = f"https://docs.google.com{SHEET_ID}/gviz/tq?tqx=out:csv&sheet={SHEET_NAME}&headers=1"
-    # El motor 'python' es más robusto para errores de red
-    return pd.read_csv(url, on_bad_lines='skip', engine='python')
+
+@st.cache_data(ttl=10)
+def cargar_datos():
+    # Línea corregida (sin errores de indentación)
+    return pd.read_csv(url)
 
 # --- 3. INTERFAZ ---
 st.markdown("<h1 style='text-align: center; color: #1A237E;'>🏦 SISTEMA C.A.F.E</h1>", unsafe_allow_html=True)
@@ -37,13 +37,13 @@ st.markdown("<h1 style='text-align: center; color: #1A237E;'>🏦 SISTEMA C.A.F.
 try:
     df = cargar_datos()
 
-    # DASHBOARD ESTILO TARJETAS (Como en tu imagen original)
+    # FILA 1: DASHBOARD ESTILO TARJETAS
     col1, col2 = st.columns(2)
     with col1:
         st.markdown(f'''
             <div class="card">
                 <div class="card-header header-purple">💰 Resumen de Capital</div>
-                <div class="card-body"><h2>Socios: {len(df)}</h2></div>
+                <div class="card-body"><h2>Socios Registrados: {len(df)}</h2></div>
             </div>
         ''', unsafe_allow_html=True)
     with col2:
@@ -54,18 +54,14 @@ try:
             </div>
         ''', unsafe_allow_html=True)
 
-    # LISTADO DE SOCIOS
+    # FILA 2: LISTADO DE SOCIOS (Look de tu imagen)
     st.markdown('<div class="card"><div class="card-header header-green">👥 Listado de Socios Registrados</div><div class="card-body">', unsafe_allow_html=True)
-    st.dataframe(df, use_container_width=True, hide_index=True)
+    if not df.empty:
+        st.dataframe(df, use_container_width=True, hide_index=True)
+    else:
+        st.info("La tabla está lista, esperando datos de Google Sheets.")
     st.markdown('</div></div>', unsafe_allow_html=True)
 
 except Exception as e:
     st.error(f"Error al leer la hoja: {e}")
-    st.info("Revisa que la pestaña en tu Google Sheet se llame exactamente: DB_CAFE")
-
-
-
-
-
-
-
+    st.info("Asegúrate de que la pestaña en tu Google Sheet se llame exactamente: DB_CAFE")
