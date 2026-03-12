@@ -25,8 +25,10 @@ SHEET_ID = "1Qx6Uhz_XHSETKhQwlgYNpaenq6-8nTKfGcbwAvL7hkg"
 SHEET_NAME = "DB_CAFE"
 # URL Corregida y limpia
 url = f"https://docs.google.com/spreadsheets/d/1Qx6Uhz_XHSETKhQwlgYNpaenq6-8nTKfGcbwAvL7hkg/edit?usp=sharing"
-
-@st.cache_data(ttl=10)
+# Reemplaza la línea 28 y 29 con estas:
+ID_HOJA = "1Qx6Uhz_XHSETKhQwlgYNpaenq6-8nTKfGcbwAvL7hkg"
+# Esta es la URL corregida para obtener solo los datos limpios:
+url_final = f"https://docs.google.com{ID_HOJA}/export?format=csv&gid=0"
 def cargar_datos():
     # Línea corregida (sin errores de indentación)
     return pd.read_csv(url)
@@ -65,4 +67,5 @@ try:
 except Exception as e:
     st.error(f"Error al leer la hoja: {e}")
     st.info("Asegúrate de que la pestaña en tu Google Sheet se llame exactamente: DB_CAFE")
+
 
