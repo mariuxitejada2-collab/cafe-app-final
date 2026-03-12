@@ -1,71 +1,60 @@
 import streamlit as st
 import pandas as pd
+from datetime import datetime
 
-# --- 1. CONFIGURACIÓN VISUAL (ESTÉTICA DE TARJETAS) ---
-st.set_page_config(page_title="C.A.F.E - Dashboard", page_icon="🏦", layout="wide")
+# Configuración de la página y Estética (Logo)
+st.set_page_config(page_title="CAFE - Caja de Ahorro", page_icon="💰")
+st.title("🏦 Sistema de Gestión CAFE")
+st.subheader("Caja de Ahorro Fe y Esperanza")
 
-st.markdown("""
-    <style>
-    .stApp { background-color: #F8F9FA; }
-    .card {
-        background-color: white; border-radius: 15px; padding: 0px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 25px;
-        overflow: hidden; border: 1px solid #E0E0E0;
-    }
-    .card-header { padding: 12px 20px; color: white; font-weight: bold; font-size: 18px; }
-    .header-purple { background-color: #6A1B9A; }
-    .header-blue { background-color: #1565C0; }
-    .header-green { background-color: #2E7D32; }
-    .card-body { padding: 20px; }
-    </style>
-    """, unsafe_allow_html=True)
+# Simulación de Base de Datos (En una app real esto iría en SQL)
+if 'socios' not in st.session_state:
+    st.session_state.socios = pd.DataFrame(
+        columns=["ID", "Nombre", "Ahorro_Total", "Tipo", "Deuda_Actual"]
+    )
 
-# --- 2. CONEXIÓN A GOOGLE SHEETS ---
-SHEET_ID = "1Qx6Uhz_XHSETKhQwlgYNpaenq6-8nTKfGcbwAvL7hkg"
-SHEET_NAME = "DB_CAFE"
-# URL Corregida y limpia
-url = f"https://docs.google.com/spreadsheets/d/1Qx6Uhz_XHSETKhQwlgYNpaenq6-8nTKfGcbwAvL7hkg/edit?usp=sharing"
-# Reemplaza la línea 28 y 29 con estas:
-ID_HOJA = "1Qx6Uhz_XHSETKhQwlgYNpaenq6-8nTKfGcbwAvL7hkg"
-# Esta es la URL corregida para obtener solo los datos limpios:
-url_final = f"https://docs.google.com{ID_HOJA}/export?format=csv&gid=0"
-def cargar_datos():
-    # Línea corregida (sin errores de indentación)
-    return pd.read_csv(url)
+# --- MENÚ LATERAL ---
+menu = st.sidebar.selectbox("Panel de Control", ["Inicio", "Aportes Domingos", "Préstamos", "Estado de Cuenta"])
 
-# --- 3. INTERFAZ ---
-st.markdown("<h1 style='text-align: center; color: #1A237E;'>🏦 SISTEMA C.A.F.E</h1>", unsafe_allow_html=True)
+# --- LÓGICA DE APORTES (DOMINGOS 6:00 PM) ---
+if menu == "Aportes Domingos":
+    st.header("📥 Registro de Aporte Semanal")
+    nombre = st.selectbox("Seleccionar Socio", st.session_state.socios["Nombre"])
+    hora_pago = st.time_input("Hora de Pago", datetime.now().time())
+    
+    if st.button("Registrar Aporte $2.00"):
+        multa = 0.50 if hora_pago.hour >= 18 else 0.0
+        # Aquí se sumaría el ahorro y se restaría la multa en la base de datos
+        st.success(f"Aporte registrado para {nombre}. Multa aplicada: ${multa}")
+        if multa > 0:
+            st.warning("⚠️ Pago fuera de horario (Después de las 6:00 PM)")
 
-try:
-    df = cargar_datos()
+# --- LÓGICA DE PRÉSTAMOS (TASAS 5% Y 8%) ---
+elif menu == "Préstamos":
+    st.header("💸 Solicitud de Crédito")
+    tipo_socio = st.radio("Tipo de Solicitante", ["Socio Fundador (5%)", "Externo (8%)"])
+    monto = st.number_input("Monto a solicitar", min_value=50.0, step=50.0)
+    
+    tasa = 0.05 if "Fundador" in tipo_socio else 0.08
+    interes_mensual = monto * tasa
+    total_a_pagar = monto + interes_mensual
+    
+    st.info(f"Interés mensual: ${interes_mensual:.2f} | Total a devolver: ${total_a_pagar:.2f}")
+    
+    if st.button("Aprobar Desembolso"):
+        st.balloons()
+        st.success("Préstamo registrado en el sistema.")
 
-    # FILA 1: DASHBOARD ESTILO TARJETAS
-    col1, col2 = st.columns(2)
-    with col1:
-        st.markdown(f'''
-            <div class="card">
-                <div class="card-header header-purple">💰 Resumen de Capital</div>
-                <div class="card-body"><h2>Socios Registrados: {len(df)}</h2></div>
-            </div>
-        ''', unsafe_allow_html=True)
-    with col2:
-        st.markdown('''
-            <div class="card">
-                <div class="card-header header-blue">📊 Estado del Sistema</div>
-                <div class="card-body"><p style="font-size:18px;">Conexión: <span style="color:green;">Exitosa ✅</span></p></div>
-            </div>
-        ''', unsafe_allow_html=True)
-
-    # FILA 2: LISTADO DE SOCIOS (Look de tu imagen)
-    st.markdown('<div class="card"><div class="card-header header-green">👥 Listado de Socios Registrados</div><div class="card-body">', unsafe_allow_html=True)
-    if not df.empty:
-        st.dataframe(df, use_container_width=True, hide_index=True)
-    else:
-        st.info("La tabla está lista, esperando datos de Google Sheets.")
-    st.markdown('</div></div>', unsafe_allow_html=True)
-
-except Exception as e:
-    st.error(f"Error al leer la hoja: {e}")
-    st.info("Asegúrate de que la pestaña en tu Google Sheet se llame exactamente: DB_CAFE")
-
+# --- REGISTRO DE SOCIOS INICIAL ---
+elif menu == "Inicio":
+    st.write("Bienvenido al sistema digital de **CAFE**. Utilice el menú lateral para gestionar los fondos.")
+    with st.expander("Registrar Nuevo Socio"):
+        nuevo_nombre = st.text_input("Nombre Completo")
+        tipo = st.selectbox("Categoría", ["Fundador", "Externo"])
+        if st.button("Añadir a la Caja"):
+            nueva_fila = {"ID": len(st.session_state.socios)+1, "Nombre": nuevo_nombre, "Ahorro_Total": 0, "Tipo": tipo, "Deuda_Actual": 0}
+            st.session_state.socios = st.session_state.socios.append(nueva_fila, ignore_index=True)
+            st.success("Socio registrado con éxito.")
+    
+    st.dataframe(st.session_state.socios)
 
