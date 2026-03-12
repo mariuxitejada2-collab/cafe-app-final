@@ -24,7 +24,7 @@ st.markdown("""
 SHEET_ID = "1Qx6Uhz_XHSETKhQwlgYNpaenq6-8nTKfGcbwAvL7hkg"
 SHEET_NAME = "DB_CAFE"
 # URL Corregida y limpia
-url = f"https://docs.google.com{SHEET_ID}/gviz/tq?tqx=out:csv&sheet={SHEET_NAME}&headers=1"
+url = f"https://docs.google.com/spreadsheets/d/1Qx6Uhz_XHSETKhQwlgYNpaenq6-8nTKfGcbwAvL7hkg/edit?usp=sharing"
 
 @st.cache_data(ttl=10)
 def cargar_datos():
@@ -65,3 +65,4 @@ try:
 except Exception as e:
     st.error(f"Error al leer la hoja: {e}")
     st.info("Asegúrate de que la pestaña en tu Google Sheet se llame exactamente: DB_CAFE")
+
