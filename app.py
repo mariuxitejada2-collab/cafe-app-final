@@ -23,7 +23,7 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # --- CONEXIÓN A DATOS ---
-url_hoja = "https://docs.google.com/spreadsheets/d/1Qx6Uhz_XHSETKhQwlgYNpaenq6-8nTKfGcbwAvL7hkg/edit?usp=sharingHEETS" 
+url_hoja = "https://docs.google.com/spreadsheets/d/1Qx6Uhz_XHSETKhQwlgYNpaenq6-8nTKfGcbwAvL7hkg/edit?usp=sharing" 
 conn = st.connection("gsheets", type=GSheetsConnection)
 
 def cargar_datos():
@@ -62,3 +62,4 @@ try:
 
 except Exception as e:
     st.error("Configura la URL de tu hoja de cálculo en el código.")
+
